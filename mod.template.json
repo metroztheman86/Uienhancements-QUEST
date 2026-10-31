@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/QuestPackageManager/QPM.Package/refs/heads/main/mod.schema.json",
+  "_QPVersion": "0.1.1",
+  "name": "${mod_name}",
+  "id": "${mod_id}",
+  "author": "zjavierf (PC) / Quest port",
+  "version": "${version}",
+  "packageId": "com.beatgames.beatsaber",
+  "packageVersion": "1.40.8_7379",
+  "description": "Customizable background panels behind the song list, level selection, gameplay setup and leaderboard.",
+  "dependencies": [],
+  "modFiles": [],
+  "lateModFiles": [
+    "${binary}"
+  ],
+  "libraryFiles": [],
+  "fileCopies": [],
+  "copyExtensions": []
+}
