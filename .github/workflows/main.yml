@@ -30,12 +30,12 @@ jobs:
           path: |
             ~/.cargo/bin
             ~/.cargo/registry
-          key: qpm-cli-${{ runner.os }}-v1
+          key: qpm-cli-${{ runner.os }}-v2
 
       - name: Install QPM CLI
         run: |
           if ! command -v qpm >/dev/null 2>&1; then
-            cargo install qpm-cli --locked
+            cargo install --git https://github.com/QuestPackageManager/QPM.CLI
           fi
           qpm --version
 
