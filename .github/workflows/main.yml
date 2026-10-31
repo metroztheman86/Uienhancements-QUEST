@@ -1,0 +1,74 @@
+name: Build Quest mod (1.40.8)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27c
+          add-to-path: true
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build zip unzip
+
+      - name: Cache cargo (QPM build)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+          key: qpm-cli-${{ runner.os }}-v1
+
+      - name: Install QPM CLI
+        run: |
+          if ! command -v qpm >/dev/null 2>&1; then
+            cargo install qpm-cli --locked
+          fi
+          qpm --version
+
+      - name: Restore QPM dependencies
+        run: qpm restore
+
+      - name: Configure and compile
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-29 \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+
+      - name: Generate mod.json (fills dependencies from qpm.json)
+        run: qpm qmod manifest
+
+      - name: Package qmod
+        run: |
+          set -euo pipefail
+          test -f mod.json
+          mkdir -p package
+          install -m 755 build/libUIEnhancements.so package/libUIEnhancements.so
+          cp mod.json package/mod.json
+          (cd package && zip -9 ../UIEnhancements.qmod mod.json libUIEnhancements.so)
+          unzip -l UIEnhancements.qmod
+
+      - name: Upload qmod
+        uses: actions/upload-artifact@v4
+        with:
+          name: UIEnhancements-Quest-1.40.8
+          path: UIEnhancements.qmod
+          if-no-files-found: error
